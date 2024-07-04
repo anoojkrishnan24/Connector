@@ -44,27 +44,20 @@ class StreamedParallelSinkTest {
     private final Monitor monitor = mock(Monitor.class);
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final String dataSourceName = "test-datasource-name";
-    private final String errorMessage = "test-errormessage";
     PipedInputStream pipedInputStream = new PipedInputStream();
     private final FakeStreamDataSource dataSource = new FakeStreamDataSource(
             dataSourceName,
             new BufferedInputStream(pipedInputStream));
     private final String dataFlowRequestId = randomUUID().toString();
-    FakeParallelSink fakeSink1, fakeSink2;
+    FakeParallelSink fakeSink;
 
     @BeforeEach
     void setup() {
-        fakeSink1 = new FakeParallelSink();
-        fakeSink1.monitor = monitor;
-        fakeSink1.telemetry = new Telemetry(); // default noop implementation
-        fakeSink1.executorService = executor;
-        fakeSink1.requestId = dataFlowRequestId;
-
-        fakeSink2 = new FakeParallelSink();
-        fakeSink2.monitor = monitor;
-        fakeSink2.telemetry = new Telemetry(); // default noop implementation
-        fakeSink2.executorService = executor;
-        fakeSink2.requestId = dataFlowRequestId;
+        fakeSink = new FakeParallelSink();
+        fakeSink.monitor = monitor;
+        fakeSink.telemetry = new Telemetry(); // default noop implementation
+        fakeSink.executorService = executor;
+        fakeSink.requestId = dataFlowRequestId;
     }
 
     @Test
@@ -72,10 +65,10 @@ class StreamedParallelSinkTest {
         PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
         pipedOutputStream.write(new byte[]{'a'});
         System.out.println("Reaches here"); // Reaches here
-        var fakeFuture = fakeSink1.transfer(dataSource); //Never returns CompletableFuture
+        var fakeFuture = fakeSink.transfer(dataSource); //Never returns CompletableFuture
         System.out.println("Doesn't reach here"); // Never reaches here.
         System.out.println(fakeFuture.toString());
-        assertThat(fakeSink1.complete).isEqualTo(1);
+        assertThat(fakeSink.complete).isEqualTo(1);
     }
 
     private static class FakeParallelSink extends ParallelSink {
